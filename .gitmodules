@@ -1,0 +1,3 @@
+[submodule "fierce-common"]
+	path = fierce-common
+	url = https://github.com/fierceventures/fierce-common.git

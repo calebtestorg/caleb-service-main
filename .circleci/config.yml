@@ -1,0 +1,43 @@
+version: 2
+
+defaults: &defaults
+  docker:
+    - image: fierceventures/mcclane:latest
+
+terraform_cache: &LEIN_CACHE
+  key: dependency-cache-{{ checksum "project.clj" }}
+  paths:
+    - ~/.m2
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git submodule sync #Must have a checkout SSH key permission in circleci settings for this to work
+      - run: git submodule update --init
+      - restore_cache:
+          <<: *LEIN_CACHE
+      - run: ./caleb-service-main.sh test once
+      - save_cache:
+          <<: *LEIN_CACHE
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git submodule sync #Must have a checkout SSH key permission in circleci settings for this to work
+      - run: git submodule update --init
+      - run: ./caleb-service-main.sh deploy staging
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
